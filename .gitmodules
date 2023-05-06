@@ -1,0 +1,3 @@
+[submodule "mandeye_to_rosbag1/3rd/LASzip"]
+	path = mandeye_to_rosbag1/3rd/LASzip
+	url = https://github.com/LASzip/LASzip.git
