@@ -1,0 +1,76 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"_install",
+			"install",
+			"LASZIP_ADD_LIBRARY"
+		],
+		"files" : 
+		[
+			"/opt/ros/melodic/share/catkin/cmake/custom_install.cmake",
+			"3rd/LASzip/cmake/macros.cmake",
+			"3rd/LASzip/src/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 2
+			},
+			{
+				"command" : 2,
+				"file" : 2,
+				"line" : 37,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 1,
+				"line" : 68,
+				"parent" : 1
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 13,
+				"parent" : 2
+			}
+		]
+	},
+	"installers" : 
+	[
+		{
+			"backtrace" : 3,
+			"component" : "Unspecified",
+			"destination" : "lib",
+			"paths" : 
+			[
+				"3rd/LASzip/lib/liblaszip.so.8.0.6",
+				"3rd/LASzip/lib/liblaszip.so.8"
+			],
+			"targetId" : "laszip::@cc7cde9cca309496027b",
+			"targetIndex" : 34,
+			"targetInstallNamelink" : "skip",
+			"type" : "target"
+		},
+		{
+			"backtrace" : 3,
+			"component" : "Unspecified",
+			"destination" : "lib",
+			"paths" : 
+			[
+				"3rd/LASzip/lib/liblaszip.so"
+			],
+			"targetId" : "laszip::@cc7cde9cca309496027b",
+			"targetIndex" : 34,
+			"targetInstallNamelink" : "only",
+			"type" : "target"
+		}
+	],
+	"paths" : 
+	{
+		"build" : "3rd/LASzip/src",
+		"source" : "3rd/LASzip/src"
+	}
+}

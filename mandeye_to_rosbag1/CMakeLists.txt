@@ -43,6 +43,7 @@ include_directories(
 )
 
 add_executable(mandeye_to_rosbag mandeye_to_rosbag1_node.cpp LasLoader.cpp)
+add_executable(rosbag_to_mandeye rosbag1_to_mandeye_node.cpp LasLoader.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -58,4 +59,9 @@ target_link_libraries(mandeye_to_rosbag
   ${catkin_LIBRARIES} Eigen3::Eigen laszip ${catkin_LIBRARIES}
 )
 
+add_dependencies(rosbag_to_mandeye ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS} )
+## Specify libraries to link a library or executable target against
+target_link_libraries(rosbag_to_mandeye
+        ${catkin_LIBRARIES} Eigen3::Eigen laszip ${catkin_LIBRARIES}
+        )
 

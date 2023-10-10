@@ -11,5 +11,5 @@ namespace mandeye
     };
 
     std::vector<Point> load(const std::string& lazFile );
-
+    bool saveLaz(const std::string& filename, const std::vector<mandeye::Point>& buffer);
 }

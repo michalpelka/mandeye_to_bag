@@ -13,21 +13,61 @@
 
 #include <filesystem>
 
+#include <sensor_msgs/PointCloud2.h>
+#include <sensor_msgs/point_cloud2_iterator.h>
 
 const double time_start = 1000;
 const int num_point = 19968;
 const int line_count = 4;
 
 
+sensor_msgs::PointCloud2 createPointcloud(std::vector<mandeye::Point> &points)
+{
+    sensor_msgs::PointCloud2 points_msg;
+    points_msg.header.stamp.fromSec(points.front().timestamp);
+    points_msg.header.frame_id="livox";
+    points_msg.height = 1; // if this is a "full 3D" pointcloud, height is 1; if this is Kinect-like pointcloud, height is the vertical resolution
+    points_msg.width  = points.size();
+    points_msg.is_bigendian = false;
+    points_msg.is_dense = false; // there may be invalid points
+
+    sensor_msgs::PointCloud2Modifier pcd_modifier(points_msg);
+// this call also resizes the data structure according to the given width, height and fields
+    pcd_modifier.setPointCloud2Fields(4, "x", 1, sensor_msgs::PointField::FLOAT32,
+                         "y", 1, sensor_msgs::PointField::FLOAT32,
+                         "z", 1, sensor_msgs::PointField::FLOAT32,
+                         "i", 1, sensor_msgs::PointField::FLOAT32);
+
+    sensor_msgs::PointCloud2Iterator<float> iter_x(points_msg, "x");
+    sensor_msgs::PointCloud2Iterator<float> iter_y(points_msg, "y");
+    sensor_msgs::PointCloud2Iterator<float> iter_z(points_msg, "z");
+    sensor_msgs::PointCloud2Iterator<float> iter_i(points_msg, "i");
+
+    for (auto pit = points.begin(); iter_x != iter_x.end(); ++pit, ++iter_x, ++iter_y, ++iter_z, ++iter_i)
+    {
+        // TODO fill in x, y, z, r, g, b local variables
+        *iter_x = pit->point.x();
+        *iter_y = pit->point.y();
+        *iter_z = pit->point.z();
+        *iter_i = pit->intensity;
+    }
+
+    return points_msg;
+}
+/// Tool converts a mandeye dataset to a rosbag with Livox messages `livox_ros_driver::CustomMsg`
 int main(int argc, char **argv) {
     // parse command line arguments for directory to process
     if (argc < 3) {
         std::cout << "Usage: " << argv[0] << " <directory> <output_bag>" << std::endl;
         std::cout << " Options are:" << std::endl;
         std::cout << "  --lines <number of lines> (default 8)" << std::endl;
+        std::cout << "  --output <type of output : custom_msg / pointclous> (default pointcloud)" << std::endl;
+
+
         return 1;
     }
     int number_of_lines = 8; // default for mid360
+    std::string type = "pointcloud";
     const std::string directory = argv[1];
     const std::string output_bag = argv[2];
     for (int i = 1; i < argc; i++) {
@@ -36,7 +76,14 @@ int main(int argc, char **argv) {
             if (arg == "--lines") {
                 number_of_lines = std::stoi(argv[i + 1]);
                 i++;
-            } else {
+            }
+            else if (arg=="--output")
+            {
+                type = argv[i+1];
+                i++;
+            }
+
+            else {
                 std::cout << "Unknown option: " << arg << std::endl;
                 return 1;
             }
@@ -45,6 +92,8 @@ int main(int argc, char **argv) {
 
     std::cout << "Processing directory: " << directory << " creating bag " << output_bag << std::endl;
     std::cout << "Number of lines: " << number_of_lines << std::endl;
+    std::cout << "Type of output: " << type << std::endl;
+
 // get list of files in directory
     std::vector<std::string> files_imu;
     std::vector<std::string> files_laz;
@@ -79,9 +128,9 @@ int main(int argc, char **argv) {
                     imu.angular_velocity.y = data[2];
                     imu.angular_velocity.z = data[3];
 
-                    imu.linear_acceleration.x = data[4];
-                    imu.linear_acceleration.y = data[5];
-                    imu.linear_acceleration.z = data[6];
+                    imu.linear_acceleration.x = 0.1*data[4];
+                    imu.linear_acceleration.y = 0.1*data[5];
+                    imu.linear_acceleration.z = 0.1*data[6];
 
                     bag.write("/livox/imu", imu.header.stamp, imu);
                 }
@@ -90,44 +139,82 @@ int main(int argc, char **argv) {
         }
     }
 
-    livox_ros_driver::CustomMsg custom_msg;
-    custom_msg.lidar_id = 192;
-    custom_msg.header.frame_id = "livox_frame";
-    custom_msg.rsvd[0] = 0;
-    custom_msg.rsvd[1] = 0;
-    custom_msg.rsvd[2] = 0;
-    custom_msg.points.reserve(num_point);
+    if (type == "custom_msg")
+    {
+        livox_ros_driver::CustomMsg custom_msg;
+        custom_msg.lidar_id = 192;
+        custom_msg.header.frame_id = "livox_frame";
+        custom_msg.rsvd[0] = 0;
+        custom_msg.rsvd[1] = 0;
+        custom_msg.rsvd[2] = 0;
+        custom_msg.points.reserve(num_point);
 
-    int line_id = 0;
-    for (auto &pcName: files_laz) {
-        auto points = mandeye::load(pcName);
-        for (auto p: points) {
-            if (p.timestamp == 0)
-                continue;
-            p.timestamp += time_start;
-            if (custom_msg.points.size() == 0) {
-                custom_msg.header.stamp.fromSec(p.timestamp);
-                custom_msg.timebase = p.timestamp * 1e9;
-            }
-            livox_ros_driver::CustomPoint cp;
-            cp.tag = 0;
-            cp.offset_time = p.timestamp * 1e9 - custom_msg.timebase;
-            cp.reflectivity = p.intensity;
-            cp.x = p.point.x();
-            cp.y = p.point.y();
-            cp.z = p.point.z();
-            cp.line = line_id;
-            custom_msg.points.push_back(cp);
-            if (line_id++ >= line_count) {
-                line_id = 0;
-                if (custom_msg.points.size() > num_point) {
-                    custom_msg.point_num = custom_msg.points.size();
-                    bag.write("/livox/lidar", custom_msg.header.stamp, custom_msg);
-                    custom_msg.points.clear();
+        int line_id = 0;
+        for (auto &pcName: files_laz) {
+            auto points = mandeye::load(pcName);
+            for (auto p: points) {
+                if (p.timestamp == 0)
+                    continue;
+                p.timestamp += time_start;
+                if (custom_msg.points.size() == 0) {
+                    custom_msg.header.stamp.fromSec(p.timestamp);
+                    custom_msg.timebase = p.timestamp * 1e9;
+                }
+                livox_ros_driver::CustomPoint cp;
+                cp.tag = 0;
+                cp.offset_time = p.timestamp * 1e9 - custom_msg.timebase;
+                cp.reflectivity = p.intensity;
+                cp.x = p.point.x();
+                cp.y = p.point.y();
+                cp.z = p.point.z();
+                cp.line = line_id;
+                custom_msg.points.push_back(cp);
+                if (line_id++ >= line_count) {
+                    line_id = 0;
+                    if (custom_msg.points.size() > num_point) {
+                        custom_msg.point_num = custom_msg.points.size();
+                        bag.write("/livox/lidar", custom_msg.header.stamp, custom_msg);
+                        custom_msg.points.clear();
+                    }
                 }
             }
         }
     }
+    else if (type=="pointcloud")
+    {
+
+        int line_id = 0;
+        std::vector<mandeye::Point> chunk;
+        double startTime = -1;
+        for (auto &pcName: files_laz) {
+            auto points = mandeye::load(pcName);
+
+            for (auto p: points) {
+                if (p.timestamp == 0 ){
+                    continue;
+                }
+                if (startTime < 0)
+                {
+                    startTime = p.timestamp;
+                }
+
+                chunk.push_back(p);
+                double diff = p.timestamp - startTime;
+                if (diff > 0.1)
+                {
+                    auto msg = createPointcloud(chunk);
+                    ros::Time t;
+                    t.fromSec(startTime);
+                    bag.write("/livox/lidar", t, msg);
+                    std::cout << "wrote pointcloud";
+                    chunk.clear();
+                    startTime = p.timestamp;
+                }
+            }
+        }
+
+    }
+
     bag.close();
     return 0;
 }
