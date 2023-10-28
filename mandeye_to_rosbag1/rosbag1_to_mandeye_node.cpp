@@ -96,7 +96,7 @@ int main(int argc, char **argv) {
                 << imu_msg->linear_acceleration.x << " " << imu_msg->linear_acceleration.y << " "
                 << imu_msg->linear_acceleration.z;
                 buffer_imu.push_back(ss.str());
-                last_imu_timestamp = imu_msg->header.stamp.toSec();
+                last_imu_timestamp = imu_msg->header.stamp.toSec() ;
                 if (last_save_timestamp == 0.0) {
                     last_save_timestamp = imu_msg->header.stamp.toSec();
                 }
@@ -118,7 +118,7 @@ int main(int argc, char **argv) {
                         mandeye::Point point;
                         point.point.x() = *x_it;
                         point.point.y() = *y_it;
-                        point.point.z() = *y_it;
+                        point.point.z() = *z_it;
                         point.intensity = *i_it;
                         point.timestamp = cloud_msg->header.stamp.toNSec();
                         buffer_pointcloud.push_back(point);
