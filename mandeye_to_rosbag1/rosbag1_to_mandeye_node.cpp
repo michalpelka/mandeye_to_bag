@@ -20,6 +20,8 @@ int main(int argc, char **argv) {
         std::cout << " Options are:" << std::endl;
         std::cout << "  --pointcloud_topic " << std::endl;
         std::cout << "  --imu_topic " << std::endl;
+        std::cout << "  --chunk_len " << std::endl;
+
 
         return 1;
     }
@@ -28,6 +30,7 @@ int main(int argc, char **argv) {
 
     std::string pointcloud_topic = "/livox/lidar";
     std::string imu_topic = "";
+    float chunk_len = 20.0f;
     for (int i = 1; i < argc; i++) {
         std::string arg = argv[i];
         if (arg.size() > 1 && arg[0] == '-' && arg[1] == '-') {
@@ -38,7 +41,12 @@ int main(int argc, char **argv) {
             else if (arg == "--imu_topic") {
                 imu_topic = argv[i + 1];
                 i++;
-            }else {
+            }
+            else if (arg == "--chunk_len") {
+                chunk_len = std::stof(argv[i + 1]);
+                i++;
+            }
+            else {
                 std::cout << "Unknown option: " << arg << std::endl;
                 return 1;
             }
@@ -46,8 +54,9 @@ int main(int argc, char **argv) {
     }
 
     std::cout << "Processing directory of bags: " << pointcloud_topic << " creating mandeye dataset " << output_directory << std::endl;
-    std::cout << "Pointclould topic: " << pointcloud_topic << std::endl;
-    std::cout << "Imu topic: " << imu_topic << std::endl;
+    std::cout << "Pointcloud topic : " << pointcloud_topic << std::endl;
+    std::cout << "Imu topic        : " << imu_topic << std::endl;
+    std::cout << "Chunk len        : " << chunk_len << std::endl;
 
 // get list of files in directory
     std::vector<std::string> files_bag;
@@ -58,6 +67,11 @@ int main(int argc, char **argv) {
     }
     std::sort(files_bag.begin(), files_bag.end());
 
+
+    std::vector<mandeye::Point> buffer_pointcloud;
+    std::vector<std::string> buffer_imu;
+    double last_save_timestamp = 0.0;
+    unsigned int count = 0;
     for (auto & bag_file : files_bag)
     {
         std::cout << "Processing bag: " << bag_file << std::endl;
@@ -67,29 +81,72 @@ int main(int argc, char **argv) {
         topics.push_back(pointcloud_topic);
         topics.push_back(imu_topic);
         rosbag::View view(bag);
+        double last_imu_timestamp = 0.0;
+
         for (const rosbag::MessageInstance& msg : view) {
 
+
+            if (msg.getTopic() == imu_topic && msg.isType<sensor_msgs::Imu>())
+            {
+                sensor_msgs::Imu::ConstPtr imu_msg = msg.instantiate<sensor_msgs::Imu>();
+                assert(imu_msg != nullptr);
+                std::stringstream ss;
+                ss << imu_msg->header.stamp.toNSec() << " " <<  imu_msg->angular_velocity.x << " " << imu_msg->angular_velocity.y
+                << " " << imu_msg->angular_velocity.z << " "
+                << imu_msg->linear_acceleration.x << " " << imu_msg->linear_acceleration.y << " "
+                << imu_msg->linear_acceleration.z;
+                buffer_imu.push_back(ss.str());
+                last_imu_timestamp = imu_msg->header.stamp.toSec();
+                if (last_save_timestamp == 0.0) {
+                    last_save_timestamp = imu_msg->header.stamp.toSec();
+                }
+            }
             if (msg.getTopic() == pointcloud_topic && msg.isType<sensor_msgs::PointCloud2>())
             {
                 sensor_msgs::PointCloud2::ConstPtr cloud_msg = msg.instantiate<sensor_msgs::PointCloud2>();
+                double ts = cloud_msg->header.stamp.toSec();
                 assert(cloud_msg != nullptr);
-                std::cout << "Processing pointcloud: " << cloud_msg->header.stamp << std::endl;
-
                 // Create point cloud iterators
                 sensor_msgs::PointCloud2ConstIterator<float> x_it(*cloud_msg, "x");
                 sensor_msgs::PointCloud2ConstIterator<float> y_it(*cloud_msg, "y");
                 sensor_msgs::PointCloud2ConstIterator<float> z_it(*cloud_msg, "z");
-                for (; x_it != x_it.end(); ++x_it, ++y_it, ++z_it)
-                {
-                    float x = *x_it;
-                    float y = *y_it;
-                    float z = *z_it;
+                sensor_msgs::PointCloud2ConstIterator<float> i_it(*cloud_msg, "intensity");
 
-                    // Process x, y, z values
-                    // Example: Print the point coordinates
-                    std::cout << "Point: x=" << x << ", y=" << y << ", z=" << z << std::endl;
+
+                if (std::abs(ts-last_imu_timestamp) < 0.05*chunk_len) {
+                    for (; x_it != x_it.end(); ++x_it, ++y_it, ++z_it, ++i_it) {
+                        mandeye::Point point;
+                        point.point.x() = *x_it;
+                        point.point.y() = *y_it;
+                        point.point.z() = *y_it;
+                        point.intensity = *i_it;
+                        point.timestamp = cloud_msg->header.stamp.toNSec();
+                        buffer_pointcloud.push_back(point);
+                    }
+                }else{
+                    double error = std::abs(ts-last_imu_timestamp);
+                    std::cout << "Skipping pointcloud: " << cloud_msg->header.stamp <<" difference to imu " << error << std::endl;
                 }
             }
+
+
+            if (  msg.getTime().toSec() - last_save_timestamp > chunk_len) {
+                char fn[1024];
+                sprintf(fn, "%s/pointcloud_%04d.laz", output_directory.c_str(), count);
+                mandeye::saveLaz(fn, buffer_pointcloud);
+                sprintf(fn, "%s/imu_%04d.csv",output_directory.c_str(), count);
+                std::ofstream f(fn);
+                for (const auto &imu : buffer_imu) {
+                    f << imu << std::endl;
+                }
+                f.close();
+                buffer_pointcloud.clear();
+                buffer_imu.clear();
+                last_save_timestamp = msg.getTime().toSec();
+                count++;
+            }
+
+
         }
 
     }

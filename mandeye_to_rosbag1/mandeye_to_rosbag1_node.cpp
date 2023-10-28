@@ -36,12 +36,12 @@ sensor_msgs::PointCloud2 createPointcloud(std::vector<mandeye::Point> &points)
     pcd_modifier.setPointCloud2Fields(4, "x", 1, sensor_msgs::PointField::FLOAT32,
                          "y", 1, sensor_msgs::PointField::FLOAT32,
                          "z", 1, sensor_msgs::PointField::FLOAT32,
-                         "i", 1, sensor_msgs::PointField::FLOAT32);
+                         "intensity", 1, sensor_msgs::PointField::FLOAT32);
 
     sensor_msgs::PointCloud2Iterator<float> iter_x(points_msg, "x");
     sensor_msgs::PointCloud2Iterator<float> iter_y(points_msg, "y");
     sensor_msgs::PointCloud2Iterator<float> iter_z(points_msg, "z");
-    sensor_msgs::PointCloud2Iterator<float> iter_i(points_msg, "i");
+    sensor_msgs::PointCloud2Iterator<float> iter_i(points_msg, "intensity");
 
     for (auto pit = points.begin(); iter_x != iter_x.end(); ++pit, ++iter_x, ++iter_y, ++iter_z, ++iter_i)
     {
