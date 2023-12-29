@@ -89,6 +89,8 @@ int main(int argc, char **argv) {
     std::cout << "Imu topic        : " << imu_topic << std::endl;
     std::cout << "Chunk len        : " << chunk_len << std::endl;
     std::cout << "Emulate point ts : " << emulate_point_ts << std::endl;
+
+    assert(emulate_point_ts);
     std::vector<std::string> files_bag;
 
     if (input_bag_directory.find(".bag") != std::string::npos)
@@ -179,14 +181,18 @@ int main(int argc, char **argv) {
             }
             if (msg.getTopic() == pointcloud_topic && msg.isType<sensor_msgs::PointCloud2>() && last_imu_timestamp > 0.0)
             {
+                constexpr double PCD_Time_Offset = 1.6*1e9;
                 sensor_msgs::PointCloud2::ConstPtr cloud_msg = msg.instantiate<sensor_msgs::PointCloud2>();
-                double ts = cloud_msg->header.stamp.toSec();
+                const double ts = cloud_msg->header.stamp.toSec()+PCD_Time_Offset;
                 assert(cloud_msg != nullptr);
                 // Create point cloud iterators
                 sensor_msgs::PointCloud2ConstIterator<float> x_it(*cloud_msg, "x");
                 sensor_msgs::PointCloud2ConstIterator<float> y_it(*cloud_msg, "y");
                 sensor_msgs::PointCloud2ConstIterator<float> z_it(*cloud_msg, "z");
                 sensor_msgs::PointCloud2ConstIterator<float> i_it(*cloud_msg, "intensity");
+
+                //mine specific dataset
+                sensor_msgs::PointCloud2ConstIterator<float> t_it(*cloud_msg, "time");
 
                 if (std::abs(ts-last_imu_timestamp) < 0.05*chunk_len) {
                     const double headerTimestampS = cloud_msg->header.stamp.toSec();
@@ -202,7 +208,7 @@ int main(int argc, char **argv) {
                             point.timestamp = GetInterpolatedTimstampForLidarPoint(lidarFrameRate, headerTimestampS, num_points, point_counter) * 1e9;
 
                         } else {
-                            point.timestamp = cloud_msg->header.stamp.toNSec();
+                            point.timestamp = (*t_it + PCD_Time_Offset) * 1e9;
                         }
                         buffer_pointcloud.push_back(point);
                         point_counter++;
@@ -211,16 +217,18 @@ int main(int argc, char **argv) {
                     double error = std::abs(ts-last_imu_timestamp);
                     std::cout << "Skipping pointcloud: " << cloud_msg->header.stamp <<" difference to imu " << error << std::endl;
                 }
+
+                const  double chunk_progress = ts - last_save_timestamp;
+                std::cout << "chunk progress " << chunk_progress     << std::endl;
+                if ( chunk_progress > chunk_len && last_save_timestamp > 0.0) {
+                    SaveData(output_directory, count,buffer_pointcloud, buffer_imu);
+                    buffer_pointcloud.clear();
+                    buffer_imu.clear();
+                    last_save_timestamp = ts;
+                    count++;
+                }
             }
 
-
-            if ( msg.getTime().toSec() - last_save_timestamp > chunk_len && last_save_timestamp > 0.0) {
-                SaveData(output_directory, count,buffer_pointcloud, buffer_imu);
-                buffer_pointcloud.clear();
-                buffer_imu.clear();
-                last_save_timestamp = msg.getTime().toSec();
-                count++;
-            }
         }
         if (buffer_pointcloud.size() > 0) {
             SaveData(output_directory, count, buffer_pointcloud, buffer_imu);
