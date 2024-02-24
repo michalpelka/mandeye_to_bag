@@ -1,0 +1,177 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1
+					],
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-.-Debug-5dc457f0d68652f8218f.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.8"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						3,
+						4,
+						5
+					]
+				},
+				{
+					"build" : "common/3rd/LASzip",
+					"childIndexes" : 
+					[
+						2,
+						3
+					],
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-common.3rd.LASzip-Debug-3349683ef49924283e38.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.10"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 1,
+					"source" : "common/3rd/LASzip",
+					"targetIndexes" : 
+					[
+						0
+					]
+				},
+				{
+					"build" : "common/3rd/LASzip/src",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-common.3rd.LASzip.src-Debug-5ca2e1134b06b98a3c85.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.10"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 1,
+					"source" : "common/3rd/LASzip/src",
+					"targetIndexes" : 
+					[
+						1
+					]
+				},
+				{
+					"build" : "common/3rd/LASzip/dll",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-common.3rd.LASzip.dll-Debug-5960f9775e6fe23439fe.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.10"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 1,
+					"source" : "common/3rd/LASzip/dll",
+					"targetIndexes" : 
+					[
+						2
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"childIndexes" : 
+					[
+						1
+					],
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "mandeye_to_rosbag1",
+					"targetIndexes" : 
+					[
+						3,
+						4,
+						5
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						1,
+						2,
+						3
+					],
+					"name" : "LASZIP",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 1,
+					"id" : "dist::@7d58102a1039c990d0e8",
+					"jsonFile" : "target-dist-Debug-9d82fc6d452d9ed82b28.json",
+					"name" : "dist",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "laszip::@d25527c9b4eda9fee429",
+					"jsonFile" : "target-laszip-Debug-5a8f893be7243fffc757.json",
+					"name" : "laszip",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "laszip_api::@7cdb0d107f668327936f",
+					"jsonFile" : "target-laszip_api-Debug-393f130f0bc8ae8a7cdf.json",
+					"name" : "laszip_api",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "mandeye_to_rosbag1_uninstall::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-mandeye_to_rosbag1_uninstall-Debug-49db701e7b9f32bf2fb1.json",
+					"name" : "mandeye_to_rosbag1_uninstall",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "rosbag2_to_mandeye_node::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-rosbag2_to_mandeye_node-Debug-00f490c9f518651fce2c.json",
+					"name" : "rosbag2_to_mandeye_node",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "uninstall::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-uninstall-Debug-c4b215f6bcc33b00924d.json",
+					"name" : "uninstall",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/home/michal/colcon_ws/src/mandeye_to_bag/mandeye_to_rosbag2/cmake-build-debug",
+		"source" : "/home/michal/colcon_ws/src/mandeye_to_bag/mandeye_to_rosbag2"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 4
+	}
+}

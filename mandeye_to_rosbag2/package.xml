@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>mandeye_to_rosbag2</name>
+  <version>0.0.0</version>
+  <description>The mandeye_to_rosbag2 package and vide vers</description>
+
+  <!-- One maintainer tag required, multiple allowed, one person per tag -->
+  <!-- Example:  -->
+  <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
+  <maintainer email="michalpelka@gmail.com">Michal Pełka</maintainer>
+
+  <!-- One license tag required, multiple allowed, one license per tag -->
+  <!-- Commonly used license strings: -->
+  <!--   BSD, MIT, Boost Software License, GPLv2, GPLv3, LGPLv2.1, LGPLv3 -->
+  <license>MIT</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>geometry_msgs</depend>
+  <depend>nav_msgs</depend>
+  <depend>roscpp</depend>
+  <depend>rospy</depend>
+  <depend>std_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>tf2</depend>
+  <depend>pcl_ros</depend>
+  <depend>livox_ros_driver</depend>
+  <depend>message_generation</depend>
+</package>
+
