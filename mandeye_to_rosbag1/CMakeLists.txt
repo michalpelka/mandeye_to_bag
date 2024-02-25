@@ -26,8 +26,8 @@ catkin_package(
 
 message("LASzip library")
 # LASzip library
-add_subdirectory(3rd/LASzip)
-include_directories(3rd/LASzip/include)
+add_subdirectory(../common/3rd/LASzip)
+include_directories(../common/3rd/LASzip/include)
 
 ###########
 ## Build ##
