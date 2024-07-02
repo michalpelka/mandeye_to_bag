@@ -13,6 +13,8 @@
 #include <algorithm>
 #include <numeric>
 #include <filesystem>
+#include <livox_ros_driver/CustomMsg.h>
+
 //! \brief GetInterpolatedTimstampForLidarPoint
 //! \param frameRate - frame rate of the lidar in seconds
 //! \param startTs - timestamp of the first point in the point cloud
@@ -177,6 +179,33 @@ int main(int argc, char **argv) {
                     last_save_timestamp = imu_msg->header.stamp.toSec();
                 }
             }
+            if (msg.getTopic() == pointcloud_topic && msg.isType<livox_ros_driver::CustomMsg>() && last_imu_timestamp > 0.0)
+            {
+                livox_ros_driver::CustomMsg::ConstPtr cloud_msg = msg.instantiate<livox_ros_driver::CustomMsg>();
+                double ts = cloud_msg->header.stamp.toSec();
+                assert(cloud_msg != nullptr);
+
+
+                if (std::abs(ts-last_imu_timestamp) < 0.05*chunk_len) {
+                    const double headerTimestampS = cloud_msg->header.stamp.toSec();
+                    int point_counter = 0;
+                    for (const auto & lvx_point : cloud_msg->points)
+                    {
+                        mandeye::Point point;
+                        point.point.x() = lvx_point.x;
+                        point.point.y() = lvx_point.y;
+                        point.point.z() = lvx_point.z;
+                        point.intensity = lvx_point.reflectivity;
+                        point.timestamp = lvx_point.offset_time;
+                        buffer_pointcloud.push_back(point);
+                        point_counter++;
+                    }
+                }else{
+                    double error = std::abs(ts-last_imu_timestamp);
+                    std::cout << "Skipping pointcloud: " << cloud_msg->header.stamp <<" difference to imu " << error << std::endl;
+                }
+            }
+
             if (msg.getTopic() == pointcloud_topic && msg.isType<sensor_msgs::PointCloud2>() && last_imu_timestamp > 0.0)
             {
                 sensor_msgs::PointCloud2::ConstPtr cloud_msg = msg.instantiate<sensor_msgs::PointCloud2>();
