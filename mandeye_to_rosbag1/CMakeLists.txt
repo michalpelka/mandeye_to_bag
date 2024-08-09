@@ -26,8 +26,8 @@ catkin_package(
 
 message("LASzip library")
 # LASzip library
-add_subdirectory(../common/3rd/LASzip)
-include_directories(../common/3rd/LASzip/include)
+add_subdirectory(common/3rd/LASzip)
+include_directories(common/3rd/LASzip/include)
 
 ###########
 ## Build ##
@@ -40,10 +40,11 @@ include_directories(
   include
   ${EIGEN3_INCLUDE_DIR}
   ${PCL_INCLUDE_DIRS}
+  common
 )
 
-add_executable(mandeye_to_rosbag mandeye_to_rosbag1_node.cpp LasLoader.cpp)
-add_executable(rosbag_to_mandeye rosbag1_to_mandeye_node.cpp LasLoader.cpp)
+add_executable(mandeye_to_rosbag mandeye_to_rosbag1_node.cpp common/LasLoader.cpp)
+add_executable(rosbag_to_mandeye rosbag1_to_mandeye_node.cpp common/LasLoader.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
