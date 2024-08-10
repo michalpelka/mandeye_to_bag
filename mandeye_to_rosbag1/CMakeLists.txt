@@ -19,7 +19,7 @@ find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 
 
 catkin_package(
-  CATKIN_DEPENDS geometry_msgs nav_msgs roscpp rospy std_msgs 
+  CATKIN_DEPENDS geometry_msgs nav_msgs roscpp rospy std_msgs
   DEPENDS EIGEN3 PCL
   INCLUDE_DIRS
 )
@@ -45,6 +45,7 @@ include_directories(
 
 add_executable(mandeye_to_rosbag mandeye_to_rosbag1_node.cpp common/LasLoader.cpp)
 add_executable(rosbag_to_mandeye rosbag1_to_mandeye_node.cpp common/LasLoader.cpp)
+add_executable(log_trajectory log_trajectory.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -66,3 +67,4 @@ target_link_libraries(rosbag_to_mandeye
         ${catkin_LIBRARIES} Eigen3::Eigen laszip ${catkin_LIBRARIES}
         )
 
+target_link_libraries(log_trajectory ${catkin_LIBRARIES})
