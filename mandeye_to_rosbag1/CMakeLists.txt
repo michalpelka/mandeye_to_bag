@@ -46,6 +46,8 @@ include_directories(
 add_executable(mandeye_to_rosbag mandeye_to_rosbag1_node.cpp common/LasLoader.cpp)
 add_executable(rosbag_to_mandeye rosbag1_to_mandeye_node.cpp common/LasLoader.cpp)
 add_executable(log_trajectory log_trajectory.cpp)
+add_executable(log_cloud log_cloud.cpp)
+
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -68,3 +70,4 @@ target_link_libraries(rosbag_to_mandeye
         )
 
 target_link_libraries(log_trajectory ${catkin_LIBRARIES})
+target_link_libraries(log_cloud ${catkin_LIBRARIES})
