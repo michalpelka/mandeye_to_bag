@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(mandeye_to_rosbag1)
 
+find_package(catkin QUIET COMPONENTS
+  roscpp
+)
+
+if (catkin_FOUND)
 ADD_COMPILE_OPTIONS(-std=c++17 )
 
 ## Find catkin macros and libraries
@@ -71,3 +76,6 @@ target_link_libraries(rosbag_to_mandeye
 
 target_link_libraries(log_trajectory ${catkin_LIBRARIES})
 target_link_libraries(log_cloud ${catkin_LIBRARIES})
+else()
+  message("catkin not found so skipping this package")
+endif()

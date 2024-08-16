@@ -3,7 +3,3 @@ repositories:
     type: git
     url: https://github.com/Livox-SDK/livox_ros_driver.git
     version: master
-  FAST_LIO:
-    type: git
-    url: https://github.com/hku-mars/FAST_LIO.git
-    version: main
