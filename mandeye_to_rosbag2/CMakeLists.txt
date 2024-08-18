@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.8)
-project(mandeye_to_rosbag1)
+project(mandeye_to_rosbag2)
 
+find_package(ament_cmake QUIET)
+if(ament_cmake_FOUND)
 if (CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     add_compile_options(-Wall -Wextra -Wpedantic)
 endif ()
@@ -33,3 +35,6 @@ ament_target_dependencies(rosbag2_to_mandeye_node rclcpp sensor_msgs rosbag2_cpp
 target_link_libraries(rosbag2_to_mandeye_node laszip Eigen3::Eigen)
 install(TARGETS rosbag2_to_mandeye_node
         DESTINATION lib/${PROJECT_NAME})
+else()
+  message("ament_cmake not found so skipping this package")
+endif()

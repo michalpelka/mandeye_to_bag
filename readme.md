@@ -2,6 +2,10 @@
 
 This repository contains a simple tool that enables the conversion of Mandeye data to ROSBag.
 
+[![ROS 1 Build](https://github.com/michalpelka/mandeye_to_bag/actions/workflows/ros1-build.yml/badge.svg)](https://github.com/michalpelka/mandeye_to_bag/actions/workflows/ros1-build.yml)
+[![ROS 2 Build](https://github.com/michalpelka/mandeye_to_bag/actions/workflows/ros2-build.yml/badge.svg)](https://github.com/michalpelka/mandeye_to_bag/actions/workflows/ros2-build.yml)
+
+# ROS 1
 ## Building 
 
 To build the tool, follow these steps:
@@ -20,17 +24,20 @@ git clone https://github.com/michalpelka/mandeye_to_bag.git
 3. Initialize third-party repositories:
 ```
 cd ~/mandeye_ws/src/mandeye_to_bag
-vcs import --input livox.repos 
+vcs import --input mandeye_to_bag1/livox.repos 
 ```
 
 4. Initilize sumbodules
 ```
 cd ~/mandeye_ws/src/mandeye_to_bag/mandeye_to_rosbag1
 git submodule update --init --recursive
-cd ~/mandeye_ws/src/mandeye_to_bag/FAST_LIO
-git submodule update --init --recursive
 ```
-5. Build the workspace:
+5. Install dependencies
+```
+cd ~/mandeye_ws/src/mandeye_to_bag
+rosdep update && rosdep install --from-paths src --ignore-src -r -y
+```
+6. Build the workspace:
 ```
 cd ~/mandeye_ws
 catkin_make
@@ -59,3 +66,4 @@ rosbag play /home/michal/testPalka.bag
 ```
 
 Note: Replace `/home/michal/testPalka.bag` with the path to your converted ROSBag file.
+
