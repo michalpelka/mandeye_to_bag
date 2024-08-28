@@ -13,6 +13,7 @@
 #include <sensor_msgs/msg/point_cloud2.hpp>
 #include <sensor_msgs/point_cloud2_iterator.hpp>
 #include <vector>
+#include "ros2_utils.h"
 //! \brief GetInterpolatedTimstampForLidarPoint
 //! \param frameRate - frame rate of the lidar in seconds
 //! \param startTs - timestamp of the first point in the point cloud
@@ -24,15 +25,7 @@ double GetInterpolatedTimstampForLidarPoint(const double frameRate, const double
     return startTs + (pointNumber * frameRate) / numPoints;
 }
 
-double GetSecondFromRosTime(const builtin_interfaces::msg::Time& time)
-{
-    return static_cast<double>(time.sec) + static_cast<double>(time.nanosec) / 1e9;
-}
 
-std::uint64_t GetNanoFromRosTime(const builtin_interfaces::msg::Time& time)
-{
-    return static_cast<std::uint64_t>(time.sec) * 1e9 + static_cast<std::uint64_t>(time.nanosec) ;
-}
 void SaveData(
     const std::string& output_directory,
     const int count,
