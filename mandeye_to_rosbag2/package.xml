@@ -26,5 +26,8 @@
   <depend>pcl_ros</depend>
   <depend>livox_ros_driver</depend>
   <depend>message_generation</depend>
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
 </package>
 

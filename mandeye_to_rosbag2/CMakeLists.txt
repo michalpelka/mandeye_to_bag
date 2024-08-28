@@ -39,11 +39,13 @@ add_executable(mandeye_to_rosbag2_node mandeye_to_rosbag2_node.cpp common/LasLoa
 target_include_directories(mandeye_to_rosbag2_node PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>)
-target_compile_features(rosbag2_to_mandeye_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+target_compile_features(mandeye_to_rosbag2_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 
 ament_target_dependencies(mandeye_to_rosbag2_node rclcpp sensor_msgs rosbag2_cpp)
 target_link_libraries(mandeye_to_rosbag2_node laszip Eigen3::Eigen)
 install(TARGETS mandeye_to_rosbag2_node DESTINATION lib/${PROJECT_NAME})
+
+ament_package()
 
 else()
   message("ament_cmake not found so skipping this package")
