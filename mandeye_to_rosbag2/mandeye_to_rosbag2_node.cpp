@@ -80,6 +80,8 @@ int main(int argc, char** argv)
         }
         else if (entry.path().extension() == ".laz")
         {
+            const std::string fn = entry.path().filename().string();
+            if (fn.find("lidar") != std::string::npos)
             files_laz.push_back(entry.path());
         }
     }
