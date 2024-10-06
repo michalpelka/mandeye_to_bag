@@ -8,10 +8,10 @@ void odometryCallback(const nav_msgs::Odometry& msg)
 
         const auto& position = msg.pose.pose.position;
         const auto& orientation = msg.pose.pose.orientation;
-
+        std::cout << msg.header.stamp.toSec() <<std::endl;
         std::cout << position.x << " " << position.y << " " << position.z << " ";
         std::cout << orientation.x << " " << orientation.y << " " << orientation.z << " " << orientation.w << " ";
-        std::cout << msg.header.stamp.toSec() <<std::endl;
+        std::cout <<std::endl;
 
 }
 
