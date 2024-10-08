@@ -21,7 +21,7 @@
 #include <sensor_msgs/msg/point_cloud2.hpp>
 #include <sensor_msgs/point_cloud2_iterator.hpp>
 #include <vector>
-const double time_start = 1000;
+#include "common/ImuLoader.h"
 const int num_point = 19968;
 const int line_count = 4;
 
@@ -80,6 +80,8 @@ int main(int argc, char** argv)
         }
         else if (entry.path().extension() == ".laz")
         {
+            const std::string fn = entry.path().filename().string();
+            if (fn.find("lidar") != std::string::npos)
             files_laz.push_back(entry.path());
         }
     }
@@ -92,33 +94,23 @@ int main(int argc, char** argv)
 
     for (const auto& imu_fn : files_imu)
     {
-        std::ifstream myfile(imu_fn);
-        if (myfile.is_open())
-        { // always check whether the file is open
-            // myfile >> mystring; // pipe file's content into stream
-            // std::cout << mystring; // pipe stream's content to standard output
-            while (myfile)
-            {
-                double data[7];
-                myfile >> data[0] >> data[1] >> data[2] >> data[3] >> data[4] >> data[5] >> data[6];
-                if (data[0] > 0)
-                {
-                    sensor_msgs::msg::Imu imu;
-                    imu.header.frame_id = "livox";
-                    const double ts = time_start + (data[0] );
-                    imu.header.stamp = GetRosTimeFromNanoSecond(ts);
-                    imu.angular_velocity.x = data[1];
-                    imu.angular_velocity.y = data[2];
-                    imu.angular_velocity.z = data[3];
+        auto data = mandeye::load_imu(imu_fn, 0);
+        for (const auto& [ts, acc, ang] : data)
+        {
+            if (ts == 0)
+            continue;
+            sensor_msgs::msg::Imu imu;
+            imu.header.frame_id = "livox";
+            imu.header.stamp = GetRosTimeSecond(ts);
+            imu.angular_velocity.x = ang[0];
+            imu.angular_velocity.y = ang[1];
+            imu.angular_velocity.z = ang[2];
 
-                    imu.linear_acceleration.x = data[4];
-                    imu.linear_acceleration.y = data[5];
-                    imu.linear_acceleration.z = data[6];
+            imu.linear_acceleration.x = acc[0];
+            imu.linear_acceleration.y = acc[1];
+            imu.linear_acceleration.z = acc[2];
 
-                    bag.write(imu, "/livox/imu", imu.header.stamp);
-                }
-            }
-            myfile.close();
+            bag.write(imu, "/livox/imu", imu.header.stamp);
         }
     }
     if (messageType == "pointcloud2")

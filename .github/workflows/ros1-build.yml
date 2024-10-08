@@ -26,6 +26,8 @@ jobs:
         with:
           path : src
           submodules: recursive
+      - name: clean ros2 workspace
+        run:  rm -r src/mandeye_to_rosbag2
       - name: vcs 
         run: cd src && vcs import --input mandeye_to_rosbag1/livox.repos
       - name: rosdep

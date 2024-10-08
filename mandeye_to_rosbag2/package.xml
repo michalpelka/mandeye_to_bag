@@ -24,7 +24,10 @@
   <depend>sensor_msgs</depend>
   <depend>tf2</depend>
   <depend>pcl_ros</depend>
-  <depend>livox_ros_driver</depend>
+
   <depend>message_generation</depend>
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
 </package>
 
