@@ -48,8 +48,8 @@ include_directories(
   common
 )
 
-add_executable(mandeye_to_rosbag mandeye_to_rosbag1_node.cpp common/LasLoader.cpp)
-add_executable(rosbag_to_mandeye rosbag1_to_mandeye_node.cpp common/LasLoader.cpp)
+add_executable(mandeye_to_rosbag mandeye_to_rosbag1_node.cpp common/LasLoader.cpp common/ImuLoader.cpp)
+add_executable(rosbag_to_mandeye rosbag1_to_mandeye_node.cpp common/LasLoader.cpp common/ImuLoader.cpp)
 add_executable(log_trajectory log_trajectory.cpp)
 add_executable(log_cloud log_cloud.cpp)
 

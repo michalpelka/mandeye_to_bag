@@ -11,6 +11,8 @@
 #include <livox_ros_driver/CustomMsg.h>
 #include <livox_ros_driver/CustomPoint.h>
 
+#include "common/ImuLoader.h"
+
 #include <filesystem>
 
 
@@ -62,31 +64,25 @@ int main(int argc, char **argv) {
     rosbag::Bag bag;
     bag.open(output_bag, rosbag::bagmode::Write);
 
-    for (const auto &imu_fn: files_imu) {
-        std::ifstream myfile(imu_fn);
-        if (myfile.is_open()) { // always check whether the file is open
-            //myfile >> mystring; // pipe file's content into stream
-            //std::cout << mystring; // pipe stream's content to standard output
-            while (myfile) {
-                double data[7];
-                myfile >> data[0] >> data[1] >> data[2] >> data[3] >> data[4] >> data[5] >> data[6];
-                //std::cout << data[0] << " " << data[1] << " " << data[2] << " " << data[3] << " " << data[4] << " " << data[5] << " " << data[6] << std::endl;
-                if (data[0] > 0) {
-                    sensor_msgs::Imu imu;
-                    imu.header.frame_id = "livox";
-                    imu.header.stamp.fromSec(time_start + data[0] / 1e9);
-                    imu.angular_velocity.x = data[1];
-                    imu.angular_velocity.y = data[2];
-                    imu.angular_velocity.z = data[3];
+    for (const auto& imu_fn : files_imu)
+    {
+        const auto data = mandeye::load_imu(imu_fn, 0);
+        for (const auto& [ts, ang, acc] : data)
+        {
+            if (ts == 0)
+            continue;
+            sensor_msgs::Imu imu;
+            imu.header.frame_id = "livox";
+            imu.header.stamp.fromSec(time_start+ts);
+            imu.angular_velocity.x = ang[0];
+            imu.angular_velocity.y = ang[1];
+            imu.angular_velocity.z = ang[2];
 
-                    imu.linear_acceleration.x = data[4];
-                    imu.linear_acceleration.y = data[5];
-                    imu.linear_acceleration.z = data[6];
+            imu.linear_acceleration.x = acc[0];
+            imu.linear_acceleration.y = acc[1];
+            imu.linear_acceleration.z = acc[2];
 
-                    bag.write("/livox/imu", imu.header.stamp, imu);
-                }
-            }
-            myfile.close();
+            bag.write("/livox/imu", imu.header.stamp, imu);
         }
     }
 

@@ -95,7 +95,7 @@ int main(int argc, char** argv)
     for (const auto& imu_fn : files_imu)
     {
         auto data = mandeye::load_imu(imu_fn, 0);
-        for (const auto& [ts, acc, ang] : data)
+        for (const auto& [ts, ang, acc] : data)
         {
             if (ts == 0)
             continue;
