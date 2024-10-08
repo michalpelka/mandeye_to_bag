@@ -5,9 +5,9 @@
 
 namespace mandeye
 {
-    std::vector<std::tuple<double, ImuAcceleration, ImuAngularVelocity>> load_imu(const std::string& imu_file, int imuToUse)
+    std::vector<std::tuple<double, ImuAngularVelocity, ImuAcceleration>> load_imu(const std::string& imu_file, int imuToUse)
     {
-        std::vector<std::tuple<double, ImuAcceleration, ImuAngularVelocity>> all_data;
+        std::vector<std::tuple<double, ImuAngularVelocity, ImuAcceleration>> all_data;
 
         csv::CSVFormat format;
         format.delimiter({ ' ', ',', '\t' });
