@@ -11,8 +11,7 @@ void odometryCallback(const nav_msgs::Odometry& msg)
         const auto& orientation = msg.pose.pose.orientation;
         file << (uint64_t) msg.header.stamp.toNSec() <<", ";
         file << position.x << ", " << position.y << ", " << position.z << ", ";
-        file << orientation.x << ", " << orientation.y << ", " << orientation.z << ", " << orientation.w << "\n";
-        file <<std::endl;
+        file << orientation.x << ", " << orientation.y << ", " << orientation.z << ", " << orientation.w << std::endl;
 
 }
 
