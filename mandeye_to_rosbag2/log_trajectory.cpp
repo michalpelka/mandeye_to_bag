@@ -12,9 +12,9 @@ void odometryCallback(const nav_msgs::msg::Odometry::SharedPtr msg)
     const auto& position = msg->pose.pose.position;
     const auto& orientation = msg->pose.pose.orientation;
 
-    csv_file << (uint64_t) (msg->header.stamp.sec*1e9 + msg->header.stamp.nanosec) <<", " ;
-    csv_file << position.x << ", " << position.y << ", " << position.z << ", ";
-    csv_file << orientation.x << ", " << orientation.y << ", " << orientation.z << ", " << orientation.w<< std::endl;
+    csv_file << (uint64_t) (msg->header.stamp.sec*1e9 + msg->header.stamp.nanosec) <<"," ;
+    csv_file << position.x << "," << position.y << "," << position.z << ",";
+    csv_file << orientation.x << "," << orientation.y << "," << orientation.z << "," << orientation.w<< std::endl;
 
 }
 
