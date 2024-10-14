@@ -16,7 +16,7 @@
 #include <filesystem>
 
 
-const double time_start = 1000;
+const double time_start = 0;
 const int num_point = 19968;
 const int line_count = 4;
 
