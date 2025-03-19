@@ -14,6 +14,8 @@
 #include <sensor_msgs/point_cloud2_iterator.hpp>
 #include <vector>
 #include "ros2_utils.h"
+#include "nav_msgs/msg/odometry.hpp"
+
 //! \brief GetInterpolatedTimstampForLidarPoint
 //! \param frameRate - frame rate of the lidar in seconds
 //! \param startTs - timestamp of the first point in the point cloud
@@ -30,7 +32,8 @@ void SaveData(
     const std::string& output_directory,
     const int count,
     const std::vector<mandeye::Point>& buffer_pointcloud,
-    const std::vector<std::string>& buffer_imu)
+    const std::vector<std::string>& buffer_imu,
+    const std::vector<std::string>& buffer_odometry)
 {
     namespace fs = std::filesystem;
     fs::create_directory(output_directory);
@@ -44,7 +47,14 @@ void SaveData(
         f << imu << std::endl;
     }
     f.close();
-}
+    sprintf(fn, "%s/odometry_%04d.csv", output_directory.c_str(), count);
+    std::ofstream f_odom(fn);
+    for (const auto& odom : buffer_odometry)
+    {
+        f_odom << odom << std::endl;
+    }
+    f_odom.close();    
+    }
 
 // Tool converts a rosbag with  sensor_msgs::PointCloud2 to a mandeye dataset
 int main(int argc, char** argv)
@@ -58,6 +68,7 @@ int main(int argc, char** argv)
         std::cout << "  --imu_topic " << std::endl;
         std::cout << "  --chunk_len " << std::endl;
         std::cout << " --emulate_point_ts" << std::endl;
+        std::cout << " --odom_topic " << std::endl;
 
         return 1;
     }
@@ -67,6 +78,7 @@ int main(int argc, char** argv)
     bool emulate_point_ts = false;
     std::string pointcloud_topic = "/livox/lidar";
     std::string imu_topic = "";
+    std::string odom_topic = "";
     float chunk_len = 20.0f;
     for (int i = 1; i < argc; i++)
     {
@@ -92,6 +104,11 @@ int main(int argc, char** argv)
             {
                 emulate_point_ts = true;
             }
+            else if (arg == "--odom_topic")
+            {
+                odom_topic = argv[i + 1];
+                i++;
+            }            
             else
             {
                 std::cout << "Unknown option: " << arg << std::endl;
@@ -104,15 +121,19 @@ int main(int argc, char** argv)
     std::cout << "Pointcloud topic : " << pointcloud_topic << std::endl;
     std::cout << "Imu topic        : " << imu_topic << std::endl;
     std::cout << "Chunk len        : " << chunk_len << std::endl;
+    std::cout << "Odometry topic   : " << odom_topic << std::endl;
     std::cout << "Emulate point ts : " << emulate_point_ts << std::endl;
 
+
+    
     std::vector<mandeye::Point> buffer_pointcloud;
     std::vector<std::string> buffer_imu;
+    std::vector<std::string> buffer_odometry;
     double last_save_timestamp = 0.0;
     unsigned int count = 0;
     rclcpp::Serialization<sensor_msgs::msg::PointCloud2> serializationPointCloud2;
     rclcpp::Serialization<sensor_msgs::msg::Imu> serializationImu;
-
+    rclcpp::Serialization<nav_msgs::msg::Odometry> serializationOdom;
 
     std::cout << "Processing bag: " << input_bag << std::endl;
     rosbag2_cpp::Reader bag;
@@ -192,6 +213,19 @@ int main(int argc, char** argv)
                 last_save_timestamp = GetSecondFromRosTime(imu_msg->header.stamp);
             }
         }
+        if (msg->topic_name == odom_topic)
+        {
+            std::shared_ptr<nav_msgs::msg::Odometry> odom_msg = std::make_shared<nav_msgs::msg::Odometry>();
+            rclcpp::SerializedMessage serialized_msg(*msg->serialized_data);
+            serializationOdom.deserialize_message(&serialized_msg, odom_msg.get());
+            assert(odom_msg != nullptr);
+        
+            std::stringstream ss;
+            ss << GetNanoFromRosTime(odom_msg->header.stamp) << ","
+               << odom_msg->pose.pose.position.x << "," << odom_msg->pose.pose.position.y << "," << odom_msg->pose.pose.position.z << ","
+               << odom_msg->pose.pose.orientation.w << "," << odom_msg->pose.pose.orientation.x << "," << odom_msg->pose.pose.orientation.y << "," << odom_msg->pose.pose.orientation.z << "";
+            buffer_odometry.push_back(ss.str());
+        }        
         if (msg->topic_name == pointcloud_topic && last_imu_timestamp > 0.0)
         {
 
@@ -206,20 +240,20 @@ int main(int argc, char** argv)
             sensor_msgs::PointCloud2ConstIterator<float> x_it(*cloud_msg, "x");
             sensor_msgs::PointCloud2ConstIterator<float> y_it(*cloud_msg, "y");
             sensor_msgs::PointCloud2ConstIterator<float> z_it(*cloud_msg, "z");
-            sensor_msgs::PointCloud2ConstIterator<float> i_it(*cloud_msg, "intensity");
+            //sensor_msgs::PointCloud2ConstIterator<float> i_it(*cloud_msg, "intensity");
 
             if (std::abs(ts - last_imu_timestamp) < 0.05 * chunk_len)
             {
                 const double headerTimestampS = GetSecondFromRosTime(cloud_msg->header.stamp);
                 const int num_points = cloud_msg->width * cloud_msg->height;
                 int point_counter = 0;
-                for (; x_it != x_it.end(); ++x_it, ++y_it, ++z_it, ++i_it)
+                for (; x_it != x_it.end(); ++x_it, ++y_it, ++z_it)
                 {
                     mandeye::Point point;
                     point.point.x() = *x_it;
                     point.point.y() = *y_it;
                     point.point.z() = *z_it;
-                    point.intensity = *i_it;
+                    //point.intensity = 0.0;
                     if (emulate_point_ts)
                     {
                         point.timestamp =
@@ -243,16 +277,17 @@ int main(int argc, char** argv)
         const double messageTimeInSeconds = static_cast<double>(msg->time_stamp)/1e9;
         if (messageTimeInSeconds - last_save_timestamp > chunk_len && last_save_timestamp > 0.0)
         {
-            SaveData(output_directory, count, buffer_pointcloud, buffer_imu);
+            SaveData(output_directory, count, buffer_pointcloud, buffer_imu, buffer_odometry);
             buffer_pointcloud.clear();
             buffer_imu.clear();
+            buffer_odometry.clear();
             last_save_timestamp = messageTimeInSeconds;
             count++;
         }
     }
     if (buffer_pointcloud.size() > 0)
     {
-        SaveData(output_directory, count, buffer_pointcloud, buffer_imu);
+        SaveData(output_directory, count, buffer_pointcloud, buffer_imu, buffer_odometry);
     }
 
     return 0;

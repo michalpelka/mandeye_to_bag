@@ -32,7 +32,7 @@ target_include_directories(rosbag2_to_mandeye_node PUBLIC
         $<INSTALL_INTERFACE:include>)
 target_compile_features(rosbag2_to_mandeye_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 
-ament_target_dependencies(rosbag2_to_mandeye_node rclcpp sensor_msgs rosbag2_cpp)
+ament_target_dependencies(rosbag2_to_mandeye_node rclcpp sensor_msgs rosbag2_cpp nav_msgs)
 target_link_libraries(rosbag2_to_mandeye_node laszip Eigen3::Eigen)
 install(TARGETS rosbag2_to_mandeye_node DESTINATION lib/${PROJECT_NAME})
 

@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include <Eigen/Dense>
-#include <laszip/laszip_api.h>
+#include "laszip/laszip_api.h"
 namespace mandeye
 {
     struct Point {
