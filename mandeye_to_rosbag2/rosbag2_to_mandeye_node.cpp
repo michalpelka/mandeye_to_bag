@@ -192,15 +192,21 @@ int main(int argc, char** argv)
                 last_save_timestamp = GetSecondFromRosTime(imu_msg->header.stamp);
             }
         }
-        if (msg->topic_name == pointcloud_topic && last_imu_timestamp > 0.0)
+        if (msg->topic_name == pointcloud_topic /*&& last_imu_timestamp > 0.0*/)
         {
-
+         
             rclcpp::SerializedMessage serialized_msg(*msg->serialized_data);
             std::shared_ptr<sensor_msgs::msg::PointCloud2> cloud_msg = std::make_shared<sensor_msgs::msg::PointCloud2>();
+
             serializationPointCloud2.deserialize_message(&serialized_msg, cloud_msg.get());
             assert(cloud_msg != nullptr);
 
             double ts = GetSecondFromRosTime(cloud_msg->header.stamp);
+
+            if (last_save_timestamp == 0.0)
+            {
+                last_save_timestamp = ts;
+            }
             assert(cloud_msg != nullptr);
             // Create point cloud iterators
             sensor_msgs::PointCloud2ConstIterator<float> x_it(*cloud_msg, "x");
@@ -208,7 +214,7 @@ int main(int argc, char** argv)
             sensor_msgs::PointCloud2ConstIterator<float> z_it(*cloud_msg, "z");
             sensor_msgs::PointCloud2ConstIterator<float> i_it(*cloud_msg, "intensity");
 
-            if (std::abs(ts - last_imu_timestamp) < 0.05 * chunk_len)
+            if (true || std::abs(ts - last_imu_timestamp) < 0.05 * chunk_len)
             {
                 const double headerTimestampS = GetSecondFromRosTime(cloud_msg->header.stamp);
                 const int num_points = cloud_msg->width * cloud_msg->height;
@@ -229,7 +235,10 @@ int main(int argc, char** argv)
                     {
                         point.timestamp = GetNanoFromRosTime(cloud_msg->header.stamp);
                     }
-                    buffer_pointcloud.push_back(point);
+                    if (std::abs(point.point.x()) < 200 && std::abs(point.point.y()) < 200 & std::abs(point.point.z()) < 200)
+                    {
+                    	buffer_pointcloud.push_back(point);
+            	    }
                     point_counter++;
                 }
             }
@@ -238,8 +247,8 @@ int main(int argc, char** argv)
                 double error = std::abs(ts - last_imu_timestamp);
                 std::cout << "Skipping pointcloud: " << GetSecondFromRosTime(cloud_msg->header.stamp) << " difference to imu " << error << std::endl;
             }
+          
         }
-
         const double messageTimeInSeconds = static_cast<double>(msg->time_stamp)/1e9;
         if (messageTimeInSeconds - last_save_timestamp > chunk_len && last_save_timestamp > 0.0)
         {
