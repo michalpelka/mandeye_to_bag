@@ -13,6 +13,8 @@
 #include <algorithm>
 #include <numeric>
 #include <filesystem>
+#include <livox_ros_driver/CustomMsg.h>
+#include <livox_ros_driver/CustomPoint.h>
 //! \brief GetInterpolatedTimstampForLidarPoint
 //! \param frameRate - frame rate of the lidar in seconds
 //! \param startTs - timestamp of the first point in the point cloud
@@ -177,6 +179,23 @@ int main(int argc, char **argv) {
                     last_save_timestamp = imu_msg->header.stamp.toSec();
                 }
             }
+            if (msg.getTopic() == pointcloud_topic && msg.isType<livox_ros_driver::CustomMsg>() && last_imu_timestamp > 0.0)
+            {
+                livox_ros_driver::CustomMsg::ConstPtr custom_msg = msg.instantiate<livox_ros_driver::CustomMsg>();
+                for (const auto& cp : custom_msg->points)
+                {
+                	const uint64_t ts = custom_msg->timebase + cp.offset_time;
+                	mandeye::Point point;
+                	point.point.x() = cp.x;
+                       point.point.y() = cp.y;
+                       point.point.z() = cp.z;
+                       point.intensity = cp.reflectivity;
+                       point.timestamp = ts;
+                       buffer_pointcloud.push_back(point);
+                }
+               
+            }
+            
             if (msg.getTopic() == pointcloud_topic && msg.isType<sensor_msgs::PointCloud2>() && last_imu_timestamp > 0.0)
             {
                 sensor_msgs::PointCloud2::ConstPtr cloud_msg = msg.instantiate<sensor_msgs::PointCloud2>();
