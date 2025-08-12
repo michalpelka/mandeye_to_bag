@@ -187,11 +187,11 @@ int main(int argc, char **argv) {
                 	const uint64_t ts = custom_msg->timebase + cp.offset_time;
                 	mandeye::Point point;
                 	point.point.x() = cp.x;
-                       point.point.y() = cp.y;
-                       point.point.z() = cp.z;
-                       point.intensity = cp.reflectivity;
-                       point.timestamp = ts;
-                       buffer_pointcloud.push_back(point);
+                    point.point.y() = cp.y;
+                    point.point.z() = cp.z;
+                    point.intensity = cp.reflectivity;
+                    point.timestamp = ts;
+                    buffer_pointcloud.push_back(point);
                 }
                
             }
