@@ -26,6 +26,8 @@ jobs:
         with:
           path : src
           submodules: recursive
+      - name: Install pcl_ros
+        run: sudo apt-get update && sudo apt-get install -y ros-noetic-pcl-ros
       - name: clean ros2 workspace
         run:  rm -r src/mandeye_to_rosbag2
       - name: vcs 
