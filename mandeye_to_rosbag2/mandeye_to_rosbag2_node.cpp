@@ -16,7 +16,7 @@
 #include <optional>
 #include <rosbag2_cpp/converter_options.hpp>
 #include <rosbag2_cpp/readers/sequential_reader.hpp>
-#include <rosbag2_cpp/storage_options.hpp>
+//#include <rosbag2_cpp/storage_options.hpp>
 #include <sensor_msgs/msg/imu.hpp>
 #include <sensor_msgs/msg/point_cloud2.hpp>
 #include <sensor_msgs/point_cloud2_iterator.hpp>

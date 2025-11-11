@@ -8,7 +8,7 @@
 #include <numeric>
 #include <rosbag2_cpp/converter_options.hpp>
 #include <rosbag2_cpp/readers/sequential_reader.hpp>
-#include <rosbag2_cpp/storage_options.hpp>
+//#include <rosbag2_cpp/storage_options.hpp>
 #include <sensor_msgs/msg/imu.hpp>
 #include <sensor_msgs/msg/point_cloud2.hpp>
 #include <sensor_msgs/point_cloud2_iterator.hpp>
@@ -240,7 +240,7 @@ int main(int argc, char** argv)
             }
         }
 
-        const double messageTimeInSeconds = static_cast<double>(msg->time_stamp)/1e9;
+        const double messageTimeInSeconds = static_cast<double>(msg->recv_timestamp)/1e9;
         if (messageTimeInSeconds - last_save_timestamp > chunk_len && last_save_timestamp > 0.0)
         {
             SaveData(output_directory, count, buffer_pointcloud, buffer_imu);

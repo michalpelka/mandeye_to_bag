@@ -24,6 +24,7 @@ find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 
 find_package(std_srvs REQUIRED)
 find_package(rosbag2_cpp REQUIRED)
+find_package(rosbag2_storage REQUIRED)
 find_package(nav_msgs REQUIRED)
 
 add_executable(rosbag2_to_mandeye_node rosbag2_to_mandeye_node.cpp common/LasLoader.cpp)
@@ -32,7 +33,7 @@ target_include_directories(rosbag2_to_mandeye_node PUBLIC
         $<INSTALL_INTERFACE:include>)
 target_compile_features(rosbag2_to_mandeye_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 
-ament_target_dependencies(rosbag2_to_mandeye_node rclcpp sensor_msgs rosbag2_cpp)
+ament_target_dependencies(rosbag2_to_mandeye_node rclcpp sensor_msgs rosbag2_cpp rosbag2_storage)
 target_link_libraries(rosbag2_to_mandeye_node laszip Eigen3::Eigen)
 install(TARGETS rosbag2_to_mandeye_node DESTINATION lib/${PROJECT_NAME})
 
@@ -42,7 +43,7 @@ target_include_directories(mandeye_to_rosbag2_node PUBLIC
         $<INSTALL_INTERFACE:include>)
 target_compile_features(mandeye_to_rosbag2_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 
-ament_target_dependencies(mandeye_to_rosbag2_node rclcpp sensor_msgs rosbag2_cpp)
+ament_target_dependencies(mandeye_to_rosbag2_node rclcpp sensor_msgs rosbag2_cpp rosbag2_storage)
 target_link_libraries(mandeye_to_rosbag2_node laszip Eigen3::Eigen)
 install(TARGETS mandeye_to_rosbag2_node DESTINATION lib/${PROJECT_NAME})
 
