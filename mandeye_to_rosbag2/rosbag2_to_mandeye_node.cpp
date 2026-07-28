@@ -207,28 +207,31 @@ int main(int argc, char** argv)
             sensor_msgs::PointCloud2ConstIterator<float> y_it(*cloud_msg, "y");
             sensor_msgs::PointCloud2ConstIterator<float> z_it(*cloud_msg, "z");
             sensor_msgs::PointCloud2ConstIterator<float> i_it(*cloud_msg, "intensity");
+            sensor_msgs::PointCloud2ConstIterator<double> ts__it(*cloud_msg, "timestamp");
+
 
             if (std::abs(ts - last_imu_timestamp) < 0.05 * chunk_len)
             {
                 const double headerTimestampS = GetSecondFromRosTime(cloud_msg->header.stamp);
                 const int num_points = cloud_msg->width * cloud_msg->height;
                 int point_counter = 0;
-                for (; x_it != x_it.end(); ++x_it, ++y_it, ++z_it, ++i_it)
+                for (; x_it != x_it.end(); ++x_it, ++y_it, ++z_it, ++i_it, ++ts__it)
                 {
                     mandeye::Point point;
                     point.point.x() = *x_it;
                     point.point.y() = *y_it;
                     point.point.z() = *z_it;
                     point.intensity = *i_it;
-                    if (emulate_point_ts)
-                    {
-                        point.timestamp =
-                            GetInterpolatedTimstampForLidarPoint(lidarFrameRate, headerTimestampS, num_points, point_counter) * 1e9;
-                    }
-                    else
-                    {
-                        point.timestamp = GetNanoFromRosTime(cloud_msg->header.stamp);
-                    }
+                    point.timestamp = *ts__it * 1e9 ;
+                    // if (emulate_point_ts)
+                    // {
+                    //     point.timestamp =
+                    //         GetInterpolatedTimstampForLidarPoint(lidarFrameRate, headerTimestampS, num_points, point_counter) * 1e9;
+                    // }
+                    // else
+                    // {
+                    //     point.timestamp = GetNanoFromRosTime(cloud_msg->header.stamp);
+                    // }
                     buffer_pointcloud.push_back(point);
                     point_counter++;
                 }
