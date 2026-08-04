@@ -65,6 +65,8 @@ target_include_directories(log_cloud PUBLIC
 target_compile_features(log_cloud PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 install(TARGETS log_cloud DESTINATION lib/${PROJECT_NAME})
 
+install(PROGRAMS scripts/rosbag1_to_mandeye.sh DESTINATION lib/${PROJECT_NAME})
+
 ament_package()
 
 else()
