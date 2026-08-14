@@ -66,6 +66,7 @@ target_compile_features(log_cloud PUBLIC c_std_99 cxx_std_17)  # Require C99 and
 install(TARGETS log_cloud DESTINATION lib/${PROJECT_NAME})
 
 install(PROGRAMS scripts/rosbag1_to_mandeye.sh DESTINATION lib/${PROJECT_NAME})
+install(PROGRAMS scripts/batch_rosbag1_to_mandeye.sh DESTINATION lib/${PROJECT_NAME})
 
 ament_package()
 

@@ -26,6 +26,12 @@ input_ros1_bag="$1"
 output_mandeye_dir="$2"
 shift 2
 
+if [[ "${output_mandeye_dir}" == -* ]]; then
+    echo "Error: missing <output_mandeye_dir> argument (got '${output_mandeye_dir}', which looks like an option)." >&2
+    usage
+    exit 1
+fi
+
 if [[ ! -f "${input_ros1_bag}" ]]; then
     echo "Error: input ROS 1 bag not found: ${input_ros1_bag}" >&2
     exit 1

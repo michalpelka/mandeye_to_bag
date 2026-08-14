@@ -106,17 +106,42 @@ int main(int argc, char** argv)
     // parse command line arguments for directory to process
     if (argc < 3)
     {
-        std::cout << "Usage: " << argv[0] << " <input_bag> <directory>" << std::endl;
+        std::cout << "Usage: " << argv[0] << " <input_bag> [<input_bag2> ...] <directory>" << std::endl;
         std::cout << " Options are:" << std::endl;
         std::cout << "  --pointcloud_topic <topic> (default depends on --lidar_type)" << std::endl;
         std::cout << "  --imu_topic <topic>        (default depends on --lidar_type)" << std::endl;
         std::cout << "  --chunk_len " << std::endl;
         std::cout << "  --lidar_type <ouster|hesai|livox>  (default: ouster)" << std::endl;
+        std::cout << std::endl;
+        std::cout << "When multiple input bags are given, they are processed in order into a single" << std::endl;
+        std::cout << "mandeye session (chunk numbering continues across bags)." << std::endl;
 
         return 1;
     }
-    const std::string input_bag = argv[1];
-    const std::string output_directory = argv[2];
+
+    // leading positional arguments are input bags, the last positional argument before any
+    // "--option" is the output directory
+    std::vector<std::string> positional_args;
+    int first_option_index = argc;
+    for (int i = 1; i < argc; i++)
+    {
+        std::string arg = argv[i];
+        if (arg.size() > 1 && arg[0] == '-' && arg[1] == '-')
+        {
+            first_option_index = i;
+            break;
+        }
+        positional_args.push_back(arg);
+    }
+
+    if (positional_args.size() < 2)
+    {
+        std::cout << "Usage: " << argv[0] << " <input_bag> [<input_bag2> ...] <directory>" << std::endl;
+        return 1;
+    }
+
+    const std::string output_directory = positional_args.back();
+    const std::vector<std::string> input_bags(positional_args.begin(), positional_args.end() - 1);
 
     std::string pointcloud_topic;
     std::string imu_topic;
@@ -124,7 +149,7 @@ int main(int argc, char** argv)
     bool imu_topic_set = false;
     float chunk_len = 20.0f;
     LidarType lidar_type = LidarType::Ouster;
-    for (int i = 1; i < argc; i++)
+    for (int i = first_option_index; i < argc; i++)
     {
         std::string arg = argv[i];
         if (arg.size() > 1 && arg[0] == '-' && arg[1] == '-')
@@ -169,7 +194,11 @@ int main(int argc, char** argv)
         imu_topic = DefaultImuTopicForLidar(lidar_type);
     }
 
-    std::cout << "Processing directory of bags: " << pointcloud_topic << " creating mandeye dataset " << output_directory << std::endl;
+    std::cout << "Processing " << input_bags.size() << " bag(s), creating mandeye dataset " << output_directory << std::endl;
+    for (const auto& input_bag : input_bags)
+    {
+        std::cout << "  input bag: " << input_bag << std::endl;
+    }
     std::cout << "Pointcloud topic : " << pointcloud_topic << std::endl;
     std::cout << "Imu topic        : " << imu_topic << std::endl;
     std::cout << "Chunk len        : " << chunk_len << std::endl;
@@ -182,13 +211,14 @@ int main(int argc, char** argv)
     rclcpp::Serialization<sensor_msgs::msg::PointCloud2> serializationPointCloud2;
     rclcpp::Serialization<sensor_msgs::msg::Imu> serializationImu;
 
+    double last_imu_timestamp = -1.;
 
+    for (const auto& input_bag : input_bags)
+    {
     std::cout << "Processing bag: " << input_bag << std::endl;
     rosbag2_cpp::Reader bag;
 
     bag.open(input_bag);
-
-    double last_imu_timestamp = -1.;
 
     while(bag.has_next())
     {
@@ -277,6 +307,7 @@ int main(int argc, char** argv)
             last_save_timestamp = messageTimeInSeconds;
             count++;
         }
+    }
     }
     if (buffer_pointcloud.size() > 0)
     {
